@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#4a2a3a">
+<title>Bizim Müzemiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,400&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --wall:#f6d9e0; --wall-low:#eec3cf; --plum:#4a2a3a; --rose:#d9788f;
+  --gold:#c9a36a; --paper:#fff8f6;
+  --serif:'Fraunces',Georgia,serif; --sans:'Nunito Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{height:100%;overflow:hidden;background:var(--plum);color:var(--plum);font-family:var(--sans);overscroll-behavior:none;touch-action:none}
+
+/* ---------- Giriş kapısı ---------- */
+#gate{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:var(--plum)}
+.door{position:absolute;top:0;bottom:0;width:50%;background:linear-gradient(160deg,#6a3a50,#4a2a3a);transition:transform 1.4s cubic-bezier(.7,0,.2,1);will-change:transform}
+.door.l{left:0;border-right:2px solid var(--gold)}
+.door.r{right:0;border-left:2px solid var(--gold)}
+.door::after{content:"";position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgba(201,163,106,.25)}
+.door.l::after{right:18px}.door.r::after{left:18px}
+.gate-card{position:relative;z-index:2;width:min(86vw,360px);text-align:center;padding:28px 22px;background:var(--paper);border:3px solid var(--gold);border-radius:6px;box-shadow:0 18px 50px rgba(0,0,0,.35);transition:opacity .5s}
+.gate-card h1{font-family:var(--serif);font-weight:500;font-size:2rem;line-height:1.15}
+.gate-card p{margin:10px 0 18px;font-size:.95rem;line-height:1.5;opacity:.8}
+.gate-card input{width:100%;padding:14px;font:600 1.05rem var(--sans);text-align:center;color:var(--plum);background:#fff;border:2px solid var(--wall-low);border-radius:10px;outline:none;-webkit-user-select:text;user-select:text}
+.gate-card input:focus-visible{border-color:var(--rose)}
+.gate-card button{margin-top:12px;width:100%;padding:14px;font:600 1rem var(--sans);color:#fff;background:var(--rose);border:0;border-radius:10px;cursor:pointer}
+.gate-card button:active{transform:scale(.98)}
+#err{min-height:1.3em;margin-top:10px;font-size:.9rem;color:#b3294a}
+.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+#gate.open .door.l{transform:translateX(-101%)}
+#gate.open .door.r{transform:translateX(101%)}
+#gate.open .gate-card{opacity:0;pointer-events:none}
+
+/* ---------- Oyun ---------- */
+#view{position:fixed;inset:0;width:100vw;height:100dvh;display:block;touch-action:none;background:#8f6477}
+#room{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:6;padding:8px 18px;max-width:80vw;text-align:center;font-family:var(--serif);font-style:italic;font-size:1.15rem;color:#fff;background:rgba(74,42,58,.8);border-radius:22px;pointer-events:none;opacity:0;transition:opacity .5s}
+#room.on{opacity:1}
+#tag{position:fixed;top:calc(62px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:6;padding:6px 14px;max-width:86vw;text-align:center;font:600 .85rem var(--sans);color:var(--plum);background:rgba(255,248,246,.92);border:1.5px solid var(--gold);border-radius:6px;pointer-events:none;opacity:0;transition:opacity .25s}
+#tag.on{opacity:1}
+#mm{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));z-index:6;border:2px solid rgba(255,248,246,.7);border-radius:6px;opacity:.9;pointer-events:none;width:124px;height:68px}
+#stick{position:fixed;left:calc(24px + env(safe-area-inset-left,0px));bottom:calc(28px + env(safe-area-inset-bottom,0px));z-index:8;width:132px;height:132px;border-radius:50%;background:rgba(255,248,246,.22);border:2px solid rgba(255,248,246,.6);touch-action:none}
+#knob{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:rgba(217,120,143,.92);box-shadow:0 4px 10px rgba(0,0,0,.3);pointer-events:none}
+#bak{position:fixed;right:calc(26px + env(safe-area-inset-right,0px));bottom:calc(46px + env(safe-area-inset-bottom,0px));z-index:8;width:88px;height:88px;border-radius:50%;font:600 1.05rem var(--sans);color:#fff;background:var(--rose);border:3px solid var(--paper);box-shadow:0 6px 16px rgba(0,0,0,.35);cursor:pointer;opacity:0;transform:scale(.8);pointer-events:none;transition:opacity .2s,transform .2s;touch-action:manipulation}
+#bak.on{opacity:1;transform:none;pointer-events:auto}
+#hint{position:fixed;left:50%;bottom:calc(180px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:6;padding:9px 16px;width:max-content;max-width:88vw;text-align:center;font:600 .85rem/1.35 var(--sans);color:#fff;background:rgba(74,42,58,.82);border-radius:18px;pointer-events:none;transition:opacity .8s}
+#hint.hide{opacity:0}
+body.noplay #stick,body.noplay #bak,body.noplay #mm,body.noplay #hint{display:none}
+
+/* ---------- Büyütülmüş fotoğraf ---------- */
+#lb{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px calc(16px + env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) calc(16px + env(safe-area-inset-left,0px));background:rgba(40,20,30,.93);opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
+#lb.on{opacity:1;visibility:visible}
+#lb img{max-width:100%;max-height:66dvh;border:8px solid var(--paper);box-shadow:0 0 0 4px var(--gold);object-fit:contain;transform:scale(.94);transition:transform .35s}
+#lb.on img{transform:none}
+#lb .cap{max-width:420px;text-align:center;color:#fff}
+#lb .cap .d{font-family:var(--serif);font-size:1.3rem}
+#lb .cap .t{margin-top:4px;font-weight:600}
+#lb .cap .n{margin-top:6px;font-size:.95rem;line-height:1.5;opacity:.85}
+#lb .x{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:14px;width:46px;height:46px;font-size:1.7rem;line-height:1;color:#fff;background:rgba(255,255,255,.14);border:0;border-radius:50%;cursor:pointer}
+
+@media (prefers-reduced-motion:reduce){
+  .door,.gate-card,#lb,#lb img,#bak,#room,#tag{transition:none}
+  .shake{animation:none}
+}
+</style>
+</head>
+<body class="noplay">
+
+<!-- Giriş kapısı -->
+<div id="gate">
+  <div class="door l"></div><div class="door r"></div>
+  <form class="gate-card" id="gateForm" autocomplete="off">
+    <h1 id="gateTitle">Bizim Müzemiz</h1>
+    <p id="gateText">İçeri girmek için şifreyi yaz.</p>
+    <input id="pw" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Şifre" placeholder="Şifre">
+    <button type="submit">Kapıyı aç</button>
+    <div id="err" role="alert"></div>
+  </form>
+</div>
+
+<!-- Müze oyunu -->
+<canvas id="view" aria-label="Fotoğraf müzesi"></canvas>
+<canvas id="mm" width="124" height="68"></canvas>
+<div id="room"></div>
+<div id="tag"></div>
+<div id="hint">Sol alttaki joystick ile yürü<br>Ekrana dokunup sürükleyerek etrafına bak</div>
+<div id="stick"><div id="knob"></div></div>
+<button id="bak" type="button">Bak</button>
+
+<div id="lb" role="dialog" aria-modal="true" aria-label="Fotoğraf">
+  <button class="x" id="lbClose" aria-label="Kapat">&times;</button>
+  <img id="lbImg" alt="">
+  <div class="cap"><div class="d" id="lbD"></div><div class="t" id="lbT"></div><div class="n" id="lbN"></div></div>
+</div>
+
+<script>
+/* =========================================================
+   AYARLAR — sadece bu bölümü düzenlemen yeterli
+   ========================================================= */
+const SETTINGS = {
+  password: "sevgilim",                 // Giriş şifresi (küçük/büyük harf fark etmez)
+  gateTitle: "Bizim Müzemiz",
+  gateText: "İçeri girmek için şifreyi yaz.",
+  wrongText: "Şifre yanlış, tekrar dene.",
+  photoFolder: "foto/",                 // Fotoğraflar bu klasörde: 01.webp, 02.webp ...
+  photoExt: ".webp"
+};
+
+/* 6 salon (3 x 2 düzeninde). Sıra: üst satır soldan sağa, sonra alt satır soldan sağa */
+const ROOMS = ["İlk Günler", "Birlikte Geçen Yaz", "Küçük Anlar", "Yolculuklar", "Gülüşlerin Salonu", "Son Zamanlar"];
+
+/* Fotoğraflar: önce elle yazdıkların, kalan kısım TOTAL'e kadar otomatik taslak olur.
+   Her biri: { date, title, note }. Dosya adı sıraya göre otomatik: 01.webp, 02.webp ... */
+const TOTAL = 50;
+const EXHIBITS_TEXT = [
+  { date: "6 Nisan 2026", title: "Yanıma süslenip geldiğin ilk gün", note: "Herkes sana hayran kalmıştı." },
+  { date: "9 Nisan 2026",  title: "Küçüksu Çayırı Pizza Date", note: "Arabada güle eğlene pizza yemiştik." },
+  { date: "12 Nisan 2026", title: "Firari'de ilk dürüm", note: "Niye çektin ki :)" },
+  { date: "13 Nisan 2026", title: "Koç ile Beykoz Gezisi", note: "Sonrada Çengelköy'de mükemmel bir burger yemiştik." },
+  { date: "24 Nisan 2026", title: "Karşılıklı Türk Kahvesi?", note: "Yan masadakileri taklit etmiştik."},
+  { date: "29 Nisan 2026", title: "Çok yorgundum...", note: "Sen benim evimdin."},
+  { date: "30 Nisan 2026", title: "Çamlıca Camii", note: "Seninle o tepe gezisi çok güzeldi."},
+  { date: "8 Mayıs 2026", title: "Üsküdar Sahili", note: "İlk defa sana içimi açmıştım."},
+  { date: "9 Mayıs 2026", title: "IKEA GEZİSİİİİ", note: "L Koltuk kavgası yapmıştık."}
+];
+
+/* =========================================================
+   KOD — gerekmedikçe dokunma
+   ========================================================= */
+const $ = id => document.getElementById(id);
+const EXHIBITS = Array.from({ length: TOTAL }, (_, i) => {
+  const t = EXHIBITS_TEXT[i] || {};
+  return {
+    src: SETTINGS.photoFolder + String(i + 1).padStart(2, "0") + SETTINGS.photoExt,
+    date: t.date || "Tarih",
+    title: t.title || "Anı " + (i + 1),
+    note: t.note || "Buraya kısa bir açıklama gelecek."
+  };
+});
+
+/* ---------- Harita: 3 x 2 salon, aralarında 2 hücrelik kapılar ---------- */
+const MW = 31, MH = 17, RCOLS = 3, RROWS = 2;
+const grid = Array.from({ length: MH }, () => Array(MW).fill(1));
+const roomRect = (c, r) => ({ x0: 1 + c * 10, y0: 1 + r * 8, x1: 9 + c * 10, y1: 7 + r * 8 });
+for (let r = 0; r < RROWS; r++) for (let c = 0; c < RCOLS; c++) {
+  const q = roomRect(c, r);
+  for (let y = q.y0; y <= q.y1; y++) for (let x = q.x0; x <= q.x1; x++) grid[y][x] = 0;
+}
+for (let r = 0; r < RROWS; r++) for (let c = 0; c < RCOLS - 1; c++) {
+  grid[4 + r * 8][10 + c * 10] = 0; grid[5 + r * 8][10 + c * 10] = 0;
+}
+for (let c = 0; c < RCOLS; c++) { grid[8][5 + c * 10] = 0; grid[8][6 + c * 10] = 0; }
+
+/* ---------- Fotoğrafları duvar yüzlerine yerleştir ---------- */
+const faceMap = new Map();      // "x,y,yön" -> fotoğraf numarası
+const exPos = [];               // fotoğrafın yaklaşık konumu (yükleme mesafesi için)
+(function placePaintings() {
+  const nRooms = RCOLS * RROWS;
+  let idx = 0;
+  for (let k = 0; k < nRooms; k++) {
+    const c = k % RCOLS, r = Math.floor(k / RCOLS), q = roomRect(c, r), L = [];
+    for (let x = q.x0 + 1; x <= q.x1 - 1; x += 2) L.push([x, q.y0 - 1, "S"]);
+    for (let y = q.y0 + 1; y <= q.y1 - 1; y += 2) L.push([q.x1 + 1, y, "W"]);
+    for (let x = q.x1 - 1; x >= q.x0 + 1; x -= 2) L.push([x, q.y1 + 1, "N"]);
+    for (let y = q.y1 - 1; y >= q.y0 + 1; y -= 2) L.push([q.x0 - 1, y, "E"]);
+    const cand = L.filter(p => grid[p[1]][p[0]] === 1);
+    const n = Math.min(cand.length, Math.floor(TOTAL / nRooms) + (k < TOTAL % nRooms ? 1 : 0));
+    for (let j = 0; j < n && idx < TOTAL; j++) {
+      const p = cand[Math.floor(j * cand.length / n)];
+      faceMap.set(p[0] + "," + p[1] + "," + p[2], idx);
+      exPos[idx] = [p[0] + .5, p[1] + .5];
+      idx++;
+    }
+  }
+})();
+
+/* ---------- Dokular ---------- */
+const TW = 128, TH = 160;
+function makeWall(dark) {
+  const c = document.createElement("canvas"); c.width = c.height = 64;
+  const g = c.getContext("2d");
+  g.fillStyle = "#f6d9e0"; g.fillRect(0, 0, 64, 64);
+  g.fillStyle = "#eec3cf"; g.fillRect(0, 40, 64, 20);
+  g.fillStyle = "#c9a36a"; g.fillRect(0, 38, 64, 2); g.fillRect(0, 60, 64, 4); g.fillRect(0, 0, 64, 3);
+  if (dark) { g.fillStyle = "rgba(74,42,58,.28)"; g.fillRect(0, 0, 64, 64); }
+  return c;
+}
+const wallLight = makeWall(false), wallDark = makeWall(true);
+
+function paintTex(c, img) {
+  const g = c.getContext("2d");
+  const gr = g.createLinearGradient(0, 0, TW, TH);
+  gr.addColorStop(0, "#ecd5a6"); gr.addColorStop(.5, "#c9a36a"); gr.addColorStop(1, "#a9824a");
+  g.fillStyle = gr; g.fillRect(0, 0, TW, TH);
+  g.fillStyle = "#fff8f6"; g.fillRect(8, 8, TW - 16, TH - 16);
+  const x = 15, y = 15, w = TW - 30, h = TH - 30;
+  if (img && img.naturalWidth) {
+    const s = Math.max(w / img.naturalWidth, h / img.naturalHeight), sw = w / s, sh = h / s;
+    g.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, x, y, w, h);
+  } else {
+    g.fillStyle = "#eec3cf"; g.fillRect(x, y, w, h);
+    g.fillStyle = "#fff"; g.font = "54px serif"; g.textAlign = "center"; g.fillText("♥", TW / 2, TH / 2 + 18);
+  }
+}
+const tex = EXHIBITS.map(() => { const c = document.createElement("canvas"); c.width = TW; c.height = TH; paintTex(c, null); return c; });
+const requested = new Set();
+function loadNear() {
+  for (let i = 0; i < EXHIBITS.length; i++) {
+    if (requested.has(i) || !exPos[i]) continue;
+    const dx = exPos[i][0] - px, dy = exPos[i][1] - py;
+    if (dx * dx + dy * dy > 100) continue;
+    requested.add(i);
+    const im = new Image();
+    im.onload = () => paintTex(tex[i], im);
+    im.src = EXHIBITS[i].src;
+  }
+}
+
+/* ---------- Oyuncu ve görüntü ---------- */
+let px = 5.5, py = 4.5, ang = 0;
+const canvas = $("view"), ctx = canvas.getContext("2d");
+let RW = 320, RH = 180, K = 300, planeLen = .66, skyGrad, floorGrad;
+
+function resize() {
+  const portrait = innerWidth < innerHeight;
+  planeLen = portrait ? .9 : .66;
+  RW = Math.min(420, Math.round(innerWidth / (portrait ? 1.6 : 2.2)));
+  RH = Math.round(RW * innerHeight / innerWidth);
+  canvas.width = RW; canvas.height = RH;
+  K = RW / (2 * planeLen);
+  ctx.imageSmoothingEnabled = false;
+  skyGrad = ctx.createLinearGradient(0, 0, 0, RH / 2);
+  skyGrad.addColorStop(0, "#d9a9b8"); skyGrad.addColorStop(1, "#f1cdd8");
+  floorGrad = ctx.createLinearGradient(0, RH / 2, 0, RH);
+  floorGrad.addColorStop(0, "#7d5468"); floorGrad.addColorStop(1, "#c79bab");
+}
+addEventListener("resize", resize);
+
+let targetI = -1, targetD = 99;
+function render() {
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, RW, RH / 2);
+  ctx.fillStyle = floorGrad; ctx.fillRect(0, RH / 2, RW, RH - RH / 2);
+  const dx = Math.cos(ang), dy = Math.sin(ang), plx = -dy * planeLen, ply = dx * planeLen;
+  const mid = RW >> 1;
+  targetI = -1; targetD = 99;
+  ctx.fillStyle = "#4a2a3a";
+  for (let x = 0; x < RW; x++) {
+    const cam = 2 * x / RW - 1, rdx = dx + plx * cam, rdy = dy + ply * cam;
+    let mx = Math.floor(px), my = Math.floor(py);
+    const ddx = Math.abs(1 / rdx), ddy = Math.abs(1 / rdy);
+    let stepX, stepY, sdx, sdy, side = 0;
+    if (rdx < 0) { stepX = -1; sdx = (px - mx) * ddx; } else { stepX = 1; sdx = (mx + 1 - px) * ddx; }
+    if (rdy < 0) { stepY = -1; sdy = (py - my) * ddy; } else { stepY = 1; sdy = (my + 1 - py) * ddy; }
+    let guard = 0;
+    while (guard++ < 64) {
+      if (sdx < sdy) { sdx += ddx; mx += stepX; side = 0; } else { sdy += ddy; my += stepY; side = 1; }
+      if (grid[my] === undefined || grid[my][mx] !== 0) break;
+    }
+    let perp = side === 0 ? sdx - ddx : sdy - ddy;
+    if (!(perp > .05)) perp = .05;
+    const lineH = K / perp, top = RH / 2 - lineH / 2;
+    let wallX = side === 0 ? py + perp * rdy : px + perp * rdx;
+    wallX -= Math.floor(wallX);
+    const u = ((side === 0 && rdx > 0) || (side === 1 && rdy < 0)) ? 1 - wallX : wallX;
+    ctx.globalAlpha = 1;
+    ctx.drawImage(side ? wallDark : wallLight, Math.min(63, Math.floor(u * 64)), 0, 1, 64, x, top, 1, lineH);
+    const dir = side === 0 ? (stepX > 0 ? "W" : "E") : (stepY > 0 ? "N" : "S");
+    const pi = faceMap.get(mx + "," + my + "," + dir);
+    if (pi !== undefined && u >= .2 && u < .8) {
+      const sx = Math.min(TW - 1, Math.floor((u - .2) / .6 * TW));
+      const pt = top + lineH * .12, ph = lineH * .75;
+      ctx.drawImage(tex[pi], sx, 0, 1, TH, x, pt, 1, ph);
+      if (x === mid) { targetI = pi; targetD = perp; }
+    }
+    ctx.globalAlpha = Math.min(.7, perp * .07);
+    ctx.fillRect(x, top, 1, lineH);
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* ---------- Mini harita ---------- */
+const mm = $("mm"), mg = mm.getContext("2d"), MS = 4;
+const mmBase = document.createElement("canvas"); mmBase.width = MW * MS; mmBase.height = MH * MS;
+(function () {
+  const g = mmBase.getContext("2d");
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
+    g.fillStyle = grid[y][x] ? "#4a2a3a" : "#f6d9e0"; g.fillRect(x * MS, y * MS, MS, MS);
+  }
+})();
+function drawMini() {
+  mg.drawImage(mmBase, 0, 0);
+  mg.fillStyle = "#d9788f"; mg.beginPath(); mg.arc(px * MS, py * MS, 3, 0, 6.3); mg.fill();
+  mg.strokeStyle = "#d9788f"; mg.lineWidth = 1.5; mg.beginPath();
+  mg.moveTo(px * MS, py * MS); mg.lineTo((px + Math.cos(ang) * 1.6) * MS, (py + Math.sin(ang) * 1.6) * MS); mg.stroke();
+}
+
+/* ---------- Kontroller ---------- */
+const joy = { x: 0, y: 0 }, keys = {};
+const stick = $("stick"), knob = $("knob");
+let jid = null;
+function moveStick(e) {
+  const r = stick.getBoundingClientRect();
+  let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+  const m = Math.hypot(dx, dy), R = r.width / 2 - 10;
+  if (m > R) { dx *= R / m; dy *= R / m; }
+  joy.x = dx / R; joy.y = dy / R;
+  knob.style.transform = "translate(" + dx + "px," + dy + "px)";
+  hideHint();
+}
+stick.addEventListener("pointerdown", e => { jid = e.pointerId; stick.setPointerCapture(e.pointerId); moveStick(e); });
+stick.addEventListener("pointermove", e => { if (e.pointerId === jid) moveStick(e); });
+["pointerup", "pointercancel"].forEach(t => stick.addEventListener(t, e => {
+  if (e.pointerId === jid) { jid = null; joy.x = joy.y = 0; knob.style.transform = ""; }
+}));
+
+/* Ekranı sürükleyerek bakma + kısa dokunuşla fotoğrafı açma */
+let lookId = null, lastX = 0, downX = 0, downY = 0, downT = 0;
+canvas.addEventListener("pointerdown", e => {
+  if (lookId !== null) return;
+  lookId = e.pointerId; canvas.setPointerCapture(e.pointerId);
+  lastX = downX = e.clientX; downY = e.clientY; downT = performance.now();
+});
+canvas.addEventListener("pointermove", e => {
+  if (e.pointerId !== lookId) return;
+  ang += (e.clientX - lastX) * .006; lastX = e.clientX; hideHint();
+});
+["pointerup", "pointercancel"].forEach(t => canvas.addEventListener(t, e => {
+  if (e.pointerId !== lookId) return;
+  lookId = null;
+  if (t === "pointerup" && performance.now() - downT < 300 && Math.hypot(e.clientX - downX, e.clientY - downY) < 8 && targetI >= 0 && targetD <= 3) openLb(targetI);
+}));
+addEventListener("keydown", e => {
+  const k = e.key.toLowerCase();
+  if (k === "escape") closeLb();
+  if (document.activeElement && document.activeElement.tagName === "INPUT") return;
+  keys[k] = true;
+  if ((k === "enter" || k === " ") && targetI >= 0 && targetD <= 3 && !paused) openLb(targetI);
+});
+addEventListener("keyup", e => { keys[e.key.toLowerCase()] = false; });
+
+/* ---------- Döngü ---------- */
+let running = false, paused = false, last = 0, curRoom = -1, roomTimer, hintTimer;
+const dz = v => Math.abs(v) < .12 ? 0 : v;
+function free(x, y) {
+  const r = .28;
+  for (const ox of [-r, r]) for (const oy of [-r, r]) {
+    const g = grid[Math.floor(y + oy)]; if (!g || g[Math.floor(x + ox)] !== 0) return false;
+  }
+  return true;
+}
+function update(dt) {
+  let f = -dz(joy.y) + ((keys.w || keys.arrowup ? 1 : 0) - (keys.s || keys.arrowdown ? 1 : 0));
+  let s = dz(joy.x) + ((keys.d ? 1 : 0) - (keys.a ? 1 : 0));
+  const m = Math.hypot(f, s); if (m > 1) { f /= m; s /= m; }
+  ang += ((keys.arrowright ? 1 : 0) - (keys.arrowleft ? 1 : 0)) * 2 * dt;
+  const sp = 2.4 * dt, dx = Math.cos(ang), dy = Math.sin(ang);
+  const vx = (dx * f - dy * s) * sp, vy = (dy * f + dx * s) * sp;
+  if (free(px + vx, py)) px += vx;
+  if (free(px, py + vy)) py += vy;
+  const ri = Math.min(RROWS - 1, Math.floor(py / 8)) * RCOLS + Math.min(RCOLS - 1, Math.floor(px / 10));
+  if (ri !== curRoom) {
+    curRoom = ri;
+    const el = $("room"); el.textContent = ROOMS[ri] || ""; el.classList.add("on");
+    clearTimeout(roomTimer); roomTimer = setTimeout(() => el.classList.remove("on"), 2600);
+  }
+}
+function updateUI() {
+  const near = targetI >= 0 && targetD <= 3;
+  $("bak").classList.toggle("on", near && !paused);
+  const tag = $("tag");
+  if (targetI >= 0 && targetD <= 4 && !paused) {
+    tag.textContent = EXHIBITS[targetI].date + " · " + EXHIBITS[targetI].title; tag.classList.add("on");
+  } else tag.classList.remove("on");
+}
+function frame(t) {
+  if (!running) return;
+  requestAnimationFrame(frame);
+  const dt = Math.min(.05, (t - last) / 1000 || 0); last = t;
+  if (!paused) update(dt);
+  render(); drawMini(); updateUI();
+}
+function hideHint() { clearTimeout(hintTimer); $("hint").classList.add("hide"); }
+
+/* ---------- Fotoğraf büyütme ---------- */
+$("bak").addEventListener("click", () => { if (targetI >= 0) openLb(targetI); });
+function openLb(i) {
+  const e = EXHIBITS[i], img = $("lbImg");
+  img.src = e.src; img.alt = e.title;
+  $("lbD").textContent = e.date; $("lbT").textContent = e.title; $("lbN").textContent = e.note;
+  paused = true; joy.x = joy.y = 0; knob.style.transform = "";
+  $("lb").classList.add("on"); $("lbClose").focus();
+}
+function closeLb() {
+  if (!$("lb").classList.contains("on")) return;
+  $("lb").classList.remove("on"); paused = false;
+}
+$("lb").addEventListener("click", e => { if (e.target.id !== "lbImg") closeLb(); });
+
+/* ---------- Şifre kapısı ve başlangıç ---------- */
+function startGame() {
+  document.body.classList.remove("noplay");
+  resize(); loadNear(); setInterval(loadNear, 600);
+  running = true; requestAnimationFrame(frame);
+  hintTimer = setTimeout(hideHint, 7000);
+}
+function enterMuseum(instant) {
+  const gate = $("gate");
+  try { sessionStorage.setItem("museum-open", "1"); } catch (_) {}
+  if (instant) { gate.remove(); startGame(); return; }
+  gate.classList.add("open"); startGame();
+  setTimeout(() => gate.remove(), 1500);
+}
+$("gateForm").addEventListener("submit", e => {
+  e.preventDefault();
+  if ($("pw").value.trim().toLowerCase() === SETTINGS.password.toLowerCase()) enterMuseum(false);
+  else {
+    $("err").textContent = SETTINGS.wrongText;
+    const card = $("gateForm"); card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
+  }
+});
+document.title = SETTINGS.gateTitle;
+$("gateTitle").textContent = SETTINGS.gateTitle;
+$("gateText").textContent = SETTINGS.gateText;
+resize();
+try { if (sessionStorage.getItem("museum-open") === "1") enterMuseum(true); } catch (_) {}
+</script>
+</body>
+</html>
